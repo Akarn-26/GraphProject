@@ -1,8 +1,11 @@
 from groq import Groq
+from dotenv import load_dotenv
+import os
 import json
 from ingestion import extract_pages,chunk_pages
 import time
-
+load_dotenv()
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 def prompt(chunk_text):
     prompt=f""" 
     You are a knowledge graph extractor. Extract triples from the text below.
@@ -14,28 +17,33 @@ def prompt(chunk_text):
     RULES:
     - Only use node types and relationship types from the lists above
     - Extract only facts explicitly stated in the text, no assumptions
+    - Always include the article number where this fact is stated as source_article
     - Return ONLY a JSON array, no explanation, no extra text
 
     FORMAT:
     [
-        {{"subject": "...", "subject_type": "...", "relation": "...", "object": "...", "object_type": "..."}}
+        {{"subject": "...", "subject_type": "...", "relation": "...", "object": "...", "object_type": "...", "source_article": "Article X"}}
     ]
 
     TEXT:
     {chunk_text} """
     return prompt
 
-client=Groq(api_key="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")
 chunks=chunk_pages(extract_pages("constitution.pdf"))
 
 extracted_list=[]
 for chunk in chunks:
     time.sleep(2)
-    response=client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role":"user","content":prompt(chunk["text"])}]
-    )
-    text=response.choices[0].message.content.replace("```json","").replace("```","").strip()
+    try:
+        response=client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role":"user","content":prompt(chunk["text"])}]
+        )
+        text=response.choices[0].message.content.replace("```json","").replace("```","").strip()
+    except Exception as e:
+        print(f"Error:{e}")
+        break
+
     try:
         extracted_list.append(json.loads(text))
     except:
