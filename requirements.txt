@@ -10,4 +10,4 @@ python-dotenv==1.2.2
 requests==2.34.2
 pydantic==2.13.4
 numpy==2.4.6
-fasatembed==0.8.0
+fastembed==0.8.0
