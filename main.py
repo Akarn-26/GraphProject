@@ -29,6 +29,9 @@ async def global_exception_handler(request, exc):
     )
 class UserQuery(BaseModel):
     query:str
+@app.head("/health")
+def health():
+    return {} #for uptime robot head is equivalent to ping
 @app.get("/")
 def home():
     return {"Message":"Welcome to Neo4j graph Project"}
