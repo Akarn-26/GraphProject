@@ -8,7 +8,7 @@ question=st.text_input("Your Question")
 
 if st.button("Ask"):
     if question:
-        with st.spinnter("Thinking..."):
+        with st.spinner("Thinking..."):
             response=requests.post("http://localhost:8000/query",json={"query":question})
             answer=response.json()["Answer"]
         st.markdown(answer)
