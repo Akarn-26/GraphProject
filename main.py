@@ -14,7 +14,7 @@ load_dotenv()
 async def lifespan(app:FastAPI):
     app.state.driver=GraphDatabase.driver(
         os.getenv("NEO4J_URI"),
-        auth=("neo4j", os.getenv("NEO4J_PASSWORD"))
+        auth=("d4c48bc9", os.getenv("NEO4J_PASSWORD"))
     )
     app.state.ready = True
     print("DB loaded")
