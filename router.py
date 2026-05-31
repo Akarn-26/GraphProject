@@ -12,15 +12,16 @@ def run_cypher(query, driver):
         with driver.session() as session:
             result = session.run(query)
             return [record.data() for record in result]
-    except Exception as e:
-        return ["No such thing found, Some similar semantic searches would be:"]
+    except:
+        return []
     
 def beautify_text(answer):
     prompt = "Make this answer structured and do not add any additional details. Answer: "
     prompt += answer
     response = client.chat.completions.create(
         model=model,
-        messages=[{"role": "user", "content": prompt}]
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0
     )
     return response.choices[0].message.content.replace("```json","").replace("```","").strip()
 
@@ -43,43 +44,56 @@ def handle_query(user_input, driver):
     
     response = client.chat.completions.create(
         model=model,
-        messages=[{"role": "user", "content": prompt}
-        ],temperature=0 
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0
     )
     text = response.choices[0].message.content.replace("```json","").replace("```","").strip()
+
     prompt_graph = """Write a Cypher query for Neo4j strictly using only these:
-                Node types: Person, Role, Institution, Right, Duty, Article
-                Relationship types: HAS_POWER, PART_OF, DEFINED_IN, APPOINTED_BY, RESPONSIBLE_TO, GRANTS, RESTRICTS
-                Every node has a 'name' property.
-                Use WHERE n.name CONTAINS 'keyword' for name matching, never exact names.
-                ONLY use node types and relationship types listed above. Do not invent new ones.
-                Return ONLY the Cypher query, no explanation, no backticks, no comments.
-                - When searching for a person, use CONTAINS with just the core name without "The" prefix
-                - Example: WHERE n.name CONTAINS 'Queen' not WHERE n.name CONTAINS 'The Queen'
-                Examples:
-                "What articles grant human rights?" -> MATCH (a:Article)-[:GRANTS]->(r:Right) WHERE r.name CONTAINS 'human' RETURN a.name, r.name
-                "What powers does the King have?" -> MATCH (p:Person)-[:HAS_POWER]->(r:Role) WHERE p.name CONTAINS 'King' RETURN p.name, r.name
-                "Which institutions are part of government?" -> MATCH (i:Institution)-[:PART_OF]->(g:Institution) WHERE g.name CONTAINS 'government' RETURN i.name, g.name
-                "What duties are defined in Article 1?" -> MATCH (a:Article)-[:GRANTS]->(d:Duty) WHERE a.name CONTAINS '1' RETURN a.name, d.name
-                Question: """
+        Node types: Person, Role, Institution, Right, Duty, Article
+        Relationship types: HAS_POWER, PART_OF, DEFINED_IN, APPOINTED_BY, RESPONSIBLE_TO, GRANTS, RESTRICTS
+        Every node has a 'name' property.
+        Use WHERE n.name CONTAINS 'keyword' for name matching, never exact names.
+        ONLY use node types and relationship types listed above. Do not invent new ones.
+        Return ONLY the Cypher query, no explanation, no backticks, no comments.
+        - When searching for a person, use CONTAINS with just the core name without "The" prefix
+        - Never use variable length paths (*) in relationship patterns
+        Examples:
+        "What articles grant human rights?" -> MATCH (a:Article)-[:GRANTS]->(r:Right) WHERE r.name CONTAINS 'human' RETURN a.name, r.name
+        "What powers does the King have?" -> MATCH (p:Person)-[:HAS_POWER]->(r:Role) WHERE p.name CONTAINS 'King' RETURN p.name, r.name
+        "Which institutions are part of government?" -> MATCH (i:Institution)-[:PART_OF]->(g:Institution) WHERE g.name CONTAINS 'government' RETURN i.name, g.name
+        "What duties are defined in Article 1?" -> MATCH (a:Article)-[:GRANTS]->(d:Duty) WHERE a.name CONTAINS '1' RETURN a.name, d.name
+        Question: """
+
     try:
         if text == "graph":
             prompt_graph += user_input
             response = client.chat.completions.create(
                 model=model,
-                messages=[{"role": "user", "content": prompt_graph}], temperature =0
+                messages=[{"role": "user", "content": prompt_graph}],
+                temperature=0
             )
             text = response.choices[0].message.content.replace("```json","").replace("```","").strip()
-            return beautify_text(str(run_cypher(text, driver)))
+            graph_results = run_cypher(text, driver)
+            if not graph_results:
+                return beautify_text(str(search(user_input)))
+            return beautify_text(str(graph_results))
+
         elif text == "summary":
             return beautify_text(str(search(user_input)))
+
         else:
             prompt_graph += user_input
             response = client.chat.completions.create(
                 model=model,
-                messages=[{"role": "user", "content": prompt_graph}], temperature=0
+                messages=[{"role": "user", "content": prompt_graph}],
+                temperature=0
             )
             text = response.choices[0].message.content.replace("```json","").replace("```","").strip()
-            return beautify_text(str(run_cypher(text, driver)) + str(search(user_input)))
+            graph_results = run_cypher(text, driver)
+            if not graph_results:
+                return beautify_text(str(search(user_input)))
+            return beautify_text(str(graph_results) + str(search(user_input)))
+
     except Exception as e:
         raise RuntimeError(str(e))
