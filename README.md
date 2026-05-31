@@ -256,3 +256,7 @@ Two web services on [render.com](https://render.com):
 | Backend | FastAPI + Uvicorn |
 | Frontend | Streamlit |
 | Deployment | Render |
+
+## Its Working Demo Pic
+   <img width="2181" height="1548" alt="Screenshot 2026-05-31 144637" src="https://github.com/user-attachments/assets/b358995e-f550-43eb-a3b8-49e9b5d2f307" />
+
