@@ -14,7 +14,7 @@ if "ready" not in st.session_state:
         health = get_health()
         st.session_state.ready = health.get("status") == "ready"
         if not st.session_state.ready:
-            st.error("API or Neo4j is offline. Make sure both servers are running.")
+            st.error("API or Neo4j is offline. Make sure both servers are running. Reload as well.")
             st.stop()
 st.set_page_config(page_title="Norway Constitution QA", page_icon="🏛️")
 
