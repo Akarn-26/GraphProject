@@ -5,7 +5,7 @@ import os
 load_dotenv()
 def get_health():
     try:
-        return requests.get(f"{API_URL}", timeout=2).json()
+        return requests.get(f"{API_URL}", timeout=60).json()
     except:
         return {"status": "unavailable", "embedding_model": False, "neo4j": False}
 API_URL=os.getenv("API_URL","http://localhost:8000")
