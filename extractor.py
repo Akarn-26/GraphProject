@@ -37,7 +37,8 @@ for chunk in chunks:
     try:
         response=client.chat.completions.create(
             model="llama-3.3-70b-versatile",
-            messages=[{"role":"user","content":prompt(chunk["text"])}]
+            messages=[{"role":"user","content":prompt(chunk["text"])}],
+             temperature=0
         )
         text=response.choices[0].message.content.replace("```json","").replace("```","").strip()
     except Exception as e:
