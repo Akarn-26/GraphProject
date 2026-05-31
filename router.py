@@ -13,7 +13,7 @@ def run_cypher(query, driver):
             result = session.run(query)
             return [record.data() for record in result]
     except Exception as e:
-        return ["No such thing found"]
+        return ["No such thing found, Some similar semantic searches would be:"]
     
 def beautify_text(answer):
     prompt = "Make this answer structured and do not add any additional details. Answer: "

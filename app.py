@@ -19,7 +19,7 @@ st.caption("Ask anything about Norway's 1814 constitution")
 with st.spinner("Checking system status..."):
     health = get_health()
     if health.get("status") != "ready":
-        st.error("API or Neo4j is offline. Make sure both servers are running.")
+        st.error("API or Neo4j is offline. Make sure both servers are running. It might take time to load on current server.")
         st.stop()
 
 question = st.text_input("Your question")
