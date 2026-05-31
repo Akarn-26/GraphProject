@@ -13,7 +13,7 @@ driver = GraphDatabase.driver(
 model1="llama-3.3-70b-versatile"
 model2="llama-3.1-8b-instant"
 model=model1
-def run_cypher(query):
+def run_cypher(query,driver):
     with driver.session() as session:
         result = session.run(query)
         return [record.data() for record in result]
@@ -27,7 +27,7 @@ def beautify_text(answer):
     )
     text=response.choices[0].message.content.replace("```json","").replace("```","").strip()
     return text
-def handle_query(user_input:str)-> str:
+def handle_query(user_input,driver,st_model):
 
     prompt = """Classify the user question into exactly one of: graph, summary, both.
 
@@ -73,9 +73,9 @@ def handle_query(user_input:str)-> str:
                 messages=[{"role":"user","content":prompt_graph}]
             )
             text=response.choices[0].message.content.replace("```json","").replace("```","").strip()
-            return(beautify_text(str(run_cypher(text))))
+            return(beautify_text(str(run_cypher(text,driver))))
         elif text=="summary":
-            return(beautify_text(search(user_input)))
+            return(beautify_text(str(search(user_input,st_model))))
         else:
             prompt_graph = """Write a Cypher query for Neo4j strictly using only these:
             Node types: Person, Role, Institution, Right, Duty, Article
@@ -98,6 +98,6 @@ def handle_query(user_input:str)-> str:
                 messages=[{"role":"user","content":prompt_graph}]
             )
             text=response.choices[0].message.content.replace("```json","").replace("```","").strip()
-            return(beautify_text(str(run_cypher(text))+str(search(user_input))))
+            return(beautify_text(str(run_cypher(text,driver))+str(search(user_input,st_model))))
     except Exception as e:
         raise RuntimeError(str(e))

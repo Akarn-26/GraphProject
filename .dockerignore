@@ -1,0 +1,7 @@
+venv/
+.venv/
+__pycache__/
+.env
+*.pyc 
+chrome_db/
+triples.txt
