@@ -8,9 +8,12 @@ client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 model = "llama-3.3-70b-versatile"
 
 def run_cypher(query, driver):
-    with driver.session() as session:
-        result = session.run(query)
-        return [record.data() for record in result]
+    try:
+        with driver.session() as session:
+            result = session.run(query)
+            return [record.data() for record in result]
+    except Exception as e:
+        return ["No such thing found"]
     
 def beautify_text(answer):
     prompt = "Make this answer structured and do not add any additional details. Answer: "
